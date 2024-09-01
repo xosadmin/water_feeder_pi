@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import time
 
 class WaterLevelModule:
-  def __init__(self, in_pin, mode_pin):
+  def __init__(self, in_pin, mode_pin, sensor_location):
     # Set GPIO interface
     GPIO.setmode(GPIO.BCM)
 
@@ -16,6 +16,8 @@ class WaterLevelModule:
 
     # IO2 Liquid Level Signal Output (Right, Green)
     self.in_pin = in_pin
+
+    self.sensor_location = sensor_location
 
     self.pins_set = False
 
@@ -31,7 +33,16 @@ class WaterLevelModule:
     return GPIO.input(self.in_pin) == 0
 
   def get_water_level(self):
-    return GPIO.input(self.in_pin)
+    if self.sensor_location == 'reservoir':
+      if self.is_low():
+        return "Reservoir water level low!"
+      else:
+        return "Reservoir water level OK."
+    elif self.sensor_location == "waste":
+      if self.is_low():
+        return "Waste water tank can accept more water."
+      else:
+        return "Waste water tank is full! Please empty."
 
   def monitor_water_level(self):
     try:
