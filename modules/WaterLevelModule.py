@@ -1,23 +1,52 @@
-"""
-File: WaterLevelModule
-Author: 
-Description:
-"""
+# File: WaterLevelModule
+# Author: 
+# Description:
+# References: https://wiki.dfrobot.com/Non_Contact_Capacitive_Liquid_Level_Sensor_SKU_SEN0368
+
 import RPi.GPIO as GPIO
+import time
 
 class WaterLevelModule:
-  def __init__(self, pin):
-    self.pin = pin
+  def __init__(self, in_pin, mode_pin):
+    # Set GPIO interface
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(self.pin, GPIO.out)
+
+    # IO1 Liquid Sensor Forward/backward Output Select (Right, Blue)
+    self.mode_pin = mode_pin
+
+    # IO2 Liquid Level Signal Output (Right, Green)
+    self.in_pin = in_pin
+
+    self.pins_set = False
+
+    GPIO.setup(self.mode_pin, GPIO.OUT)
+
+    # Set the pull_up_down to down as per jumper cap
+    # down is set to read absence of water
+    GPIO.setup(self.in_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+    GPIO.output(self.mode_pin, True) 
 
   def is_low(self):
-    # Work here
-    pass
+    return GPIO.input(self.in_pin) == 0
 
   def get_water_level(self):
-    # Work here
-    pass
+    return GPIO.input(self.in_pin)
+
+  def monitor_water_level(self):
+    try:
+      while True:
+        water_level_status = self.get_water_level()
+        print(water_level_status)
+        time.sleep(2)
+    except KeyboardInterrupt:
+      print("Monitoring stopped.")
+    finally:
+      self.cleanup()
 
   def cleanup(self):
-    GPIO.cleanup(self.pin)
+    if self.pins_set:
+      GPIO.cleanup(self.in_pin)
+      GPIO.cleanup(self.mode_pin)
+      GPIO.cleanup()
+      self.pins_set = False

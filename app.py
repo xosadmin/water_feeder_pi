@@ -1,80 +1,35 @@
-from modules import ValveModule, WaterLevelModule, TurbidityModule, RFIDModule, PumpModule, NotificationModule
+# TODO: Import your module here
+from modules import WaterLevelModule
 
 class WaterFeeder:
-  def __init__(self):
-    # INITIALIZE MODULES
-    # Valves
-    self.reservoir_valve = ValveModule(pin=17)
-    self.bowl_valve= ValveModule(pin=18)
+    def __init__(self, waste_water_level_sensor):
+        # Set your module as member here
+        self.waste_water_level_sensor = waste_water_level_sensor
+        # GET WATER FEEDER INITIAL DATA
+        self.get_sensor_data()
 
-    # Reservoir sensors
-    self.reservoir_level_sensor = WaterLevelModule(pin=19)
-    self.reservoir_turbidity_sensor = TurbidityModule(pin=20)
+    def get_sensor_data(self):
+        waste_water_level = self.waste_water_level_sensor.get_water_level()
+        print(waste_water_level)
 
-    # Water bowl sensors
-    self.bowl_level_sensor = WaterLevelModule(pin=21)
-    self.bowl_turbidity_sensor = TurbidityModule(pin=22)
-    
-    # RFID (Jean)
-    self.rfid_reader = RFIDModule(pin=24)
+    def monitor_waste_water_level(self):
+        self.waste_water_level_sensor.monitor_water_level()
 
-    # Drainage system pump
-    self.pump = PumpModule(pin=23) 
-    self.waste_level_sensor = WaterLevelModule(pin=23)
-
-    # Notification (All)
-    self.notification = NotificationModule()
-
-    # GET WATER FEEDER INITIAL DATA
-    self.get_sensor_data()
-
-  """
-  TODO: Jiashuai
-  1. Calculate amount of water to be replenished
-  2. Open valve
-  3. Close valve
-  4. Update reservoir status
-  5. Send notification
-  """
-  def refill_bowl(self):
-    pass
-
-
-  """
-  TODO: Everyone
-    1. Shape data in JSON format and send to Cloud API
-  """
-  def get_sensor_data(self):
-    reservoir_level = self.reservoir_level_sensor.get_water_level()
-    reservoir_turbidity = self.reservoir_turbidity_sensor.get_turbidity()
-
-    bowl_level= self.bowl_level_sensor.get_water_level()
-    bowl_turbidity = self.bowl_turbidity_sensor.get_turbidity()
-
-    pump_status = self.pump.get_status()
-    waste_level = self.waste_level_sensor.get_water_level()
-    # Work here
-
-
-  def cleanup(self):
-    self.reservoir_valve.cleanup()
-    self.bowl_valve.cleanup()
-
-    self.reservoir_turbidity_sensor.cleanup()
-    self.reservoir_level_sensor.cleanup()
-
-    self.bowl_level_sensor.cleanup()
-    self.bowl_turbidity_sensor.cleanup()
-
-    self.pump.cleanup()
-    self.waste_level_sensor.cleanup()
-
-    self.rfid_reader.cleanup()
+    def cleanup(self):
+        self.waste_water_level_sensor.cleanup()
 
 if __name__ == "__main__":
-  try:
-    water_feeder = WaterFeeder()
-    # Write code here
-    pass
-  finally:
-    water_feeder.cleanup()
+    waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27)
+
+    try:
+        # Instantiate your module here by passing them as args
+        water_feeder = WaterFeeder(
+            waste_water_level_sensor = waste_water_level_sensor
+        )
+        # Start monitoring here
+        water_feeder.monitor_waste_water_level()
+
+    except KeyboardInterrupt:
+        print("Exiting program...")
+    finally:
+        water_feeder.cleanup()
