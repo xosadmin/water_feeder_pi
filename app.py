@@ -19,7 +19,7 @@ class WaterFeeder:
         self.waste_water_level_sensor.cleanup()
 
 if __name__ == "__main__":
-    waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27)
+    waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
 
     try:
         # Instantiate your module here by passing them as args
