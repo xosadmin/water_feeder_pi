@@ -19,7 +19,7 @@ class WaterFeeder:
     self.rfid_reader = RFIDModule(pin=24)
 
     # Drainage system pump
-    self.pump = PumpModule(pin=23) # (Zongqi)
+    self.pump = PumpModule(pin=23) 
     self.waste_level_sensor = WaterLevelModule(pin=23) #(Mike) 
 
     # Notification (All)

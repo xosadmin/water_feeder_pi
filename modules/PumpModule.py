@@ -1,6 +1,6 @@
 """
 File: PumpModule
-Author: Zongqi Wu
+Author: 
 Description: Turn on/off water pump based on the following conditions:
 1. If bowl valve is open, turn on.
 2. If bowl valve is closed, turn off.
