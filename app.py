@@ -26,17 +26,7 @@ class WaterFeeder:
     self.notification = NotificationModule()
 
     # GET WATER FEEDER INITIAL DATA
-    # Water levels
-    reservoir_level = self.reservoir_level_sensor.get_water_level()
-    bowl_level = self.bowl_level_sensor.get_water_level()
-    waste_level = self.waste_level_sensor.get_water_level()
-
-    # Turbidity
-    reservoir_turbidity = self.reservoir_turbidity_sensor.get_turbidity()
-    bowl_turbidity = self.bowl_turbidity_sensor.get_turbidity()
-
-    # Water pump status
-    pump_status = self.pump.get_status()
+    self.get_sensor_data()
 
   """
   TODO: Jiashuai
