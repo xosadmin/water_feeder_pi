@@ -4,14 +4,14 @@ class WaterFeeder:
   def __init__(self):
     # INITIALIZE MODULES
     # Valves
-    self.reservoir_valve = ValveModule(pin=17) #(Jias)
-    self.bowl_valve= ValveModule(pin=18) #(Hanxun)
+    self.reservoir_valve = ValveModule(pin=17)
+    self.bowl_valve= ValveModule(pin=18)
 
-    # Reservoir sensors (Jias)
+    # Reservoir sensors
     self.reservoir_level_sensor = WaterLevelModule(pin=19)
     self.reservoir_turbidity_sensor = TurbidityModule(pin=20)
 
-    # Water bowl sensors (Hanxun)
+    # Water bowl sensors
     self.bowl_level_sensor = WaterLevelModule(pin=21)
     self.bowl_turbidity_sensor = TurbidityModule(pin=22)
     
@@ -20,23 +20,23 @@ class WaterFeeder:
 
     # Drainage system pump
     self.pump = PumpModule(pin=23) 
-    self.waste_level_sensor = WaterLevelModule(pin=23) #(Mike) 
+    self.waste_level_sensor = WaterLevelModule(pin=23)
 
     # Notification (All)
     self.notification = NotificationModule()
 
     # GET WATER FEEDER INITIAL DATA
     # Water levels
-    self.reservoir_level_status = self.reservoir_level_sensor.get_water_level()
-    self.bowl_level_sensor.get_water_level()
-    self.waste_level_sensor.get_water_level()
+    reservoir_level = self.reservoir_level_sensor.get_water_level()
+    bowl_level = self.bowl_level_sensor.get_water_level()
+    waste_level = self.waste_level_sensor.get_water_level()
 
     # Turbidity
-    self.reservoir_turbidity_sensor.get_turbidity()
-    self.bowl_turbidity_sensor.get_turbidity()
+    reservoir_turbidity = self.reservoir_turbidity_sensor.get_turbidity()
+    bowl_turbidity = self.bowl_turbidity_sensor.get_turbidity()
 
     # Water pump status
-    self.pump.get_status()
+    pump_status = self.pump.get_status()
 
   """
   TODO: Jiashuai
