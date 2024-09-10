@@ -6,15 +6,25 @@ Description:
 import RPi.GPIO as GPIO
 
 class TurbidityModule:
-  def __init__(self, id, pin):
-    self.id = id
-    self.pin = pin
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(self.pin, GPIO.IN)
+    def __init__(self, id, sensor_pin, output_pin):
+        self.id = id
+        self.sensor_pin = sensor_pin
+        self.output_pin = output_pin
 
-  def get_turbidity(self):
-    # Work here
-    pass
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.sensor_pin, GPIO.IN)
+        GPIO.setup(self.output_pin, GPIO.OUT)
 
-  def cleanup(self):
-    GPIO.cleanup()
+    def get_turbidity(self):
+        turbidity_state = GPIO.input(self.sensor_pin)
+        if turbidity_state == GPIO.LOW:
+            print(f"Turbidity Sensor {self.id}: High turbidity detected.")
+            GPIO.output(self.output_pin, GPIO.HIGH)
+            return 1 # High
+        else:
+            print(f"Turbidity Sensor {self.id}: Low turbidity detected.")
+            GPIO.output(self.output_pin, GPIO.LOW)
+            return 0 # Low
+
+    def cleanup(self):
+        GPIO.cleanup()
