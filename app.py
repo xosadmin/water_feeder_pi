@@ -1,4 +1,5 @@
 # TODO: Import your module here
+import os
 from modules import WaterLevelModule, TurbidityModule
 from modules import mqttModule
 import time
@@ -13,6 +14,9 @@ class WaterFeeder:
         # GET WATER FEEDER INITIAL DATA
         self.monitoring = True
         self.get_sensor_data()
+
+        self.mqtt_client.client.subscribe("remotecommand")
+        self.mqtt_client.client.on_message = self.on_message
 
     def get_sensor_data(self):
         waste_water_level = self.waste_water_level_sensor.get_water_level()
@@ -52,6 +56,22 @@ class WaterFeeder:
         self.turbidity_thread.daemon = True
         self.turbidity_thread.start()
 
+    def on_message(self, client, userdata, message):
+        # Callback function for handling MQTT messages.
+        topic = message.topic
+        payload = message.payload.decode('utf-8')
+
+        if topic == "remotecommand":
+            if payload == "changewater":
+                pass
+            elif payload == "refillwater":
+                pass
+            elif payload == "restartfeeder":
+                os.system("reboot")
+            else:
+                print(f"Unknown command received: {payload}")
+            self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
+
     def cleanup(self):
         self.monitoring = False
         if hasattr(self, 'water_level_thread') and self.water_level_thread.is_alive():
@@ -62,7 +82,7 @@ class WaterFeeder:
         self.turbidity_sensor.cleanup()
 
 if __name__ == "__main__":
-    mqtt_client = mqttModule.MQTTModule(server="10.243.29.193", port=1883) # Connect to VM
+    mqtt_client = mqttModule.MQTTModule(server="203.29.240.135", port=1883) # Connect to VM
     mqtt_client.connect()  # Initialize MQTT Client
 
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
