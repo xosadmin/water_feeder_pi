@@ -66,14 +66,15 @@ class WaterFeeder:
                 print("No command specified.")
             elif payload == "changewater":
                 pass
+                self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
             elif payload == "refillwater":
                 pass
+                self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
             elif payload == "restartfeeder":
                 self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
                 os.system("reboot")
             else:
                 print(f"Unknown command received: {payload}")
-            self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
 
     def cleanup(self):
         self.monitoring = False
