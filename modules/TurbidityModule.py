@@ -16,8 +16,9 @@ class TurbidityModule:
     def read_turbidity(self):
         analog_value = GPIO.input(self.sensor_pin)
         voltage = analog_value * 3.3 / 255
-        turbidity = (voltage - 0.4) / 0.01
+        turbidity = (voltage - 0.0128) / 0.98
         return turbidity
 
     def cleanup(self):
         GPIO.cleanup()
+

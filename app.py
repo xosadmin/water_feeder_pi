@@ -43,6 +43,8 @@ class WaterFeeder:
         while self.monitoring:
             turbidity_value = turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
+            ntu_id = self.turbidity_sensor.id
+            self.mqtt_client.send_message(f"sensor/{ntu_id}", str(turbidity_value))
             time.sleep(1)
 
     def start_monitoring(self):
@@ -107,3 +109,4 @@ if __name__ == "__main__":
     finally:
         water_feeder.cleanup()
         mqtt_client.disconnect()  # Disconnect MQTT Client
+
