@@ -1,17 +1,15 @@
-# TODO: Import your module here
 import os
-from modules import WaterLevelModule, TurbidityModule
-from modules import mqttModule
 import time
 import threading
+from modules import WaterLevelModule, TurbidityModule, mqttModule
+from wifi_conn_module import WiFiConn  # 假设 WiFiConn 类已经定义在 wifi_conn_module.py 中
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, mqtt_client):
-        # Set your module as member here
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, mqtt_client, wifi_conn):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
         self.mqtt_client = mqtt_client
-        # GET WATER FEEDER INITIAL DATA
+        self.wifi_conn = wifi_conn
         self.monitoring = True
         self.get_sensor_data()
 
@@ -20,7 +18,7 @@ class WaterFeeder:
 
     def get_sensor_data(self):
         waste_water_level = self.waste_water_level_sensor.get_water_level()
-        turbidity_value = turbidity_sensor.read_turbidity()
+        turbidity_value = self.turbidity_sensor.read_turbidity()
         sensor_location = self.waste_water_level_sensor.sensor_location
         ntu_id = self.turbidity_sensor.id
 
@@ -29,35 +27,25 @@ class WaterFeeder:
         self.mqtt_client.send_message(f"sensor/waterlevel/{sensor_location}", str(waste_water_level))
         self.mqtt_client.send_message(f"sensor/{ntu_id}", str(turbidity_value))
 
-    # def monitor_waste_water_level(self):
-    #     while self.monitoring:
-    #         waste_water_level = self.waste_water_level_sensor.get_water_level()
-    #         sensor_location = self.waste_water_level_sensor.sensor_location
-    #         print(f"Monitoring - Water Level: {waste_water_level}") # The sensor code need to adjust before uncomment these codes
-    #         time.sleep(5)
-
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
 
     def monitor_turbidity_level(self):
         while self.monitoring:
-            turbidity_value = turbidity_sensor.read_turbidity()
+            turbidity_value = self.turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
             ntu_id = self.turbidity_sensor.id
             self.mqtt_client.send_message(f"sensor/{ntu_id}", str(turbidity_value))
             time.sleep(1)
 
     def start_monitoring(self):
-        # self.water_level_thread = threading.Thread(target=self.monitor_waste_water_level)
-        # self.water_level_thread.daemon = True
-        # self.water_level_thread.start()
+        self.wifi_conn.start_real_time_update()
 
         self.turbidity_thread = threading.Thread(target=self.monitor_turbidity_level)
         self.turbidity_thread.daemon = True
         self.turbidity_thread.start()
 
     def on_message(self, client, userdata, message):
-        # Callback function for handling MQTT messages.
         topic = message.topic
         payload = message.payload.decode('utf-8')
 
@@ -65,38 +53,38 @@ class WaterFeeder:
             if payload == "0":
                 print("No command specified.")
             elif payload == "changewater":
-                pass
-                self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
+                self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "refillwater":
-                pass
-                self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
+                self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "restartfeeder":
-                self.mqtt_client.send_message("remotecommand", "0") # Clear the status of remotecommand
+                self.mqtt_client.send_message("remotecommand", "0")
                 os.system("reboot")
             else:
                 print(f"Unknown command received: {payload}")
 
     def cleanup(self):
         self.monitoring = False
-        if hasattr(self, 'water_level_thread') and self.water_level_thread.is_alive():
-            self.water_level_thread.join()
         if hasattr(self, 'turbidity_thread') and self.turbidity_thread.is_alive():
             self.turbidity_thread.join()
         self.waste_water_level_sensor.cleanup()
         self.turbidity_sensor.cleanup()
+        self.wifi_conn.stop_real_time_update()
 
 if __name__ == "__main__":
-    mqtt_client = mqttModule.MQTTModule(server="203.29.240.135", port=1883) # Connect to VM
-    mqtt_client.connect()  # Initialize MQTT Client
+    mqtt_client = mqttModule.MQTTModule(server="203.29.240.135", port=1883)
+    mqtt_client.connect()
 
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
     turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_pin=18)
-
+    
+    wifi_conn = WiFiConn(update_interval=5, api_url='http://203.29.240.135:5000/update_wificonn')
+    
     try:
         water_feeder = WaterFeeder(
             mqtt_client=mqtt_client,
             waste_water_level_sensor=waste_water_level_sensor,
-            turbidity_sensor=turbidity_sensor
+            turbidity_sensor=turbidity_sensor,
+            wifi_conn=wifi_conn
         )
         water_feeder.start_monitoring()
 
@@ -108,5 +96,4 @@ if __name__ == "__main__":
 
     finally:
         water_feeder.cleanup()
-        mqtt_client.disconnect()  # Disconnect MQTT Client
-
+        mqtt_client.disconnect()
