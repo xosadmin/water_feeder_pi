@@ -2,7 +2,7 @@ import os
 import time
 import threading
 from modules import WaterLevelModule, TurbidityModule, mqttModule
-from wifi_conn_module import WiFiConn  # 假设 WiFiConn 类已经定义在 wifi_conn_module.py 中
+from modules import wificonn
 
 class WaterFeeder:
     def __init__(self, waste_water_level_sensor, turbidity_sensor, mqtt_client, wifi_conn):
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
     turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_pin=18)
     
-    wifi_conn = WiFiConn(update_interval=5, api_url='http://203.29.240.135:5000/update_wificonn')
+    wifi_conn = wificonn(update_interval=5, api_url='http://203.29.240.135:5000/update_wificonn')
     
     try:
         water_feeder = WaterFeeder(
