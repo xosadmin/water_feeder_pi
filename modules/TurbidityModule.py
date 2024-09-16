@@ -3,21 +3,30 @@ File: TurbidityModule
 Author: Hanxun
 Description:
 """
-import RPi.GPIO as GPIO
+import time
+import board
+import busio
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 
 class TurbidityModule:
-    def __init__(self, id, sensor_pin):
+    def __init__(self, id, sensor_channel):
         self.id = id
-        self.sensor_pin = sensor_pin
+        self.sensor_channel = sensor_channel
+        self.i2c = busio.I2C(board.SCL, board.SDA)
+        self.ads = ADS.ADS1115(self.i2c)
 
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.sensor_pin, GPIO.IN)
+        if self.sensor_channel == 0:
+            self.chan = AnalogIn(self.ads, ADS.P0) #A0
+        elif self.sensor_channel == 1:
+            self.chan = AnalogIn(self.ads, ADS.P1) #A1
+        elif self.sensor_channel == 2:
+            self.chan = AnalogIn(self.ads, ADS.P2) #A2
+        elif self.sensor_channel == 3:
+            self.chan = AnalogIn(self.ads, ADS.P3) #A3
+        else:
+            raise ValueError("Invalid sensor channel. Use 0-3 for ADS1115 channels.")
 
     def read_turbidity(self):
-        analog_value = GPIO.input(self.sensor_pin)
-        voltage = analog_value * (5/1024)
-        return voltage
-
-    def cleanup(self):
-        GPIO.cleanup()
-
+        scaled_value = int((self.chan.voltage * 1023) / 32767) 
+        return scaled_value
