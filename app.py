@@ -32,7 +32,7 @@ class WaterFeeder:
 
     def monitor_turbidity_level(self):
         while self.monitoring:
-            turbidity_value = self.turbidity_sensor.read_turbidity()()
+            turbidity_value = self.turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
             ntu_id = self.turbidity_sensor.id
             self.mqtt_client.send_message(f"sensor/{ntu_id}", str(turbidity_value))
