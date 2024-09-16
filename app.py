@@ -71,13 +71,15 @@ class WaterFeeder:
         self.wifi_conn.stop_real_time_update()
 
 if __name__ == "__main__":
-    mqtt_client = mqttModule.MQTTModule(server="203.29.240.135", port=1883)
+    backendAddr = "203.29.240.135"
+
+    mqtt_client = mqttModule.MQTTModule(server=backendAddr, port=1883)
     mqtt_client.connect()
 
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
     turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_channel=0) # Install sensor on A0 on ADS115
     
-    wifi_conn = wificonn.WiFiConn(update_interval=5, api_url='http://203.29.240.135:5000/update_wificonn')
+    wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     
     try:
         water_feeder = WaterFeeder(
