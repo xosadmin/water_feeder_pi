@@ -24,8 +24,8 @@ class WaterFeeder:
 
         print(waste_water_level)
         print(f"Turbidity Level: {turbidity_value}")
-        self.mqtt_client.send_message(f"sensor/waterlevel/{sensor_location}", str(waste_water_level))
-        self.mqtt_client.send_message(f"sensor/{ntu_id}", str(turbidity_value))
+        self.mqtt_client.send_message(f"{sensor_location}", str(waste_water_level))
+        self.mqtt_client.send_message(f"{ntu_id}", str(turbidity_value))
 
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
@@ -35,7 +35,7 @@ class WaterFeeder:
             turbidity_value = self.turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
             ntu_id = self.turbidity_sensor.id
-            self.mqtt_client.send_message(f"sensor/{ntu_id}", str(turbidity_value))
+            self.mqtt_client.send_message(f"{ntu_id}", str(turbidity_value))
             time.sleep(1)
 
     def start_monitoring(self):
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     mqtt_client = mqttModule.MQTTModule(server=backendAddr, port=1883)
     mqtt_client.connect()
 
-    waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
-    turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_channel=0) # Install sensor on A0 on ADS115
+    waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waterlevelwaste")
+    turbidity_sensor = TurbidityModule(id="turbiditysensor", sensor_channel=0) # Install sensor on A0 on ADS115
     
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     
