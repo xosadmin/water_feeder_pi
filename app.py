@@ -77,7 +77,7 @@ if __name__ == "__main__":
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
     turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_channel=0) # Install sensor on A0 on ADS115
     
-    wifi_conn = wificonn(update_interval=5, api_url='http://203.29.240.135:5000/update_wificonn')
+    wifi_conn = wificonn.WiFiConn(update_interval=5, api_url='http://203.29.240.135:5000/update_wificonn')
     
     try:
         water_feeder = WaterFeeder(

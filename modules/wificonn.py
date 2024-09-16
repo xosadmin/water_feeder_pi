@@ -7,7 +7,7 @@ import requests
 
 class WiFiConn:
     def __init__(self, update_interval=5, api_url="http://203.29.240.135:5000/update_wificonn"):
-        self.wificonn = {
+        self.wificonninfo = {
             'ipaddr': None,
             'rssi': 100,
             'lastseen': None
@@ -44,16 +44,16 @@ class WiFiConn:
         ipaddr = self.get_ip_address()
         rssi = self.get_rssi()
         if ipaddr:
-            self.wificonn['ipaddr'] = ipaddr
+            self.wificonninfo['ipaddr'] = ipaddr
         if rssi is not None:
-            self.wificonn['rssi'] = rssi
-        self.wificonn['lastseen'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"WiFi connection updated: {self.wificonn}")
+            self.wificonninfo['rssi'] = rssi
+        self.wificonninfo['lastseen'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"WiFi connection updated: {self.wificonninfo}")
         self.send_to_api()
 
     def send_to_api(self):
         try:
-            response = requests.post(self.api_url, json=self.wificonn)
+            response = requests.post(self.api_url, json=self.wificonninfo)
             if response.status_code == 200:
                 print("Data sent successfully to the API")
             else:
