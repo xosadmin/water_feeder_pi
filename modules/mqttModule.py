@@ -31,15 +31,13 @@ class MQTTModule:
 """
 Usage: mqtt_module.send_message(topic, value) 
 Topic: The sensor related to your function. 
-- The topic syntax: sensor/<sensor_name>/<location(optional)>
-- For example: Turbity Sensor in Bowl: sensor/TurbiditySensor_Bowl
-- For example: Valve: sensor/valve
+- The topic syntax: <sensor_name>
+- For example: Turbity Sensor: turbiditysensor
 
 All available sensor topics:
-- Turbity Sensor in bowl: sensor/TurbiditySensor_Bowl
-- Valve: sensor/valve
-- Waste water level: sensor/waterlevel/waste
-- Turbity Sensor in water tank: sensor/TurbiditySensor_WaterTank
+- Turbity Sensor: turbiditysensor
+- Valve: valve
+- Waste water level: waterlevelwaste
 
 If you cannot find your sensor, please post on Teams so that be registered.
 
