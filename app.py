@@ -1,13 +1,14 @@
 import os
 import time
 import threading
-from modules import WaterLevelModule, TurbidityModule, mqttModule
+from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule
 from modules import wificonn
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, mqtt_client, wifi_conn):
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, mqtt_client, wifi_conn):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
+        self.reservoir_valve = reservoir_valve
         self.mqtt_client = mqtt_client
         self.wifi_conn = wifi_conn
         self.monitoring = True
@@ -78,14 +79,15 @@ if __name__ == "__main__":
 
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waste")
     turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_channel=0) # Install sensor on A0 on ADS115
-    
+    reservoir_valve = ValveModule(pin=20)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     
-    try:
+    try
         water_feeder = WaterFeeder(
             mqtt_client=mqtt_client,
             waste_water_level_sensor=waste_water_level_sensor,
             turbidity_sensor=turbidity_sensor,
+            reservoir_valve=reservoir_valve,
             wifi_conn=wifi_conn
         )
         water_feeder.start_monitoring()
