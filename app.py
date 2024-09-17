@@ -82,7 +82,7 @@ if __name__ == "__main__":
     reservoir_valve = ValveModule(pin=20)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     
-    try
+    try:
         water_feeder = WaterFeeder(
             mqtt_client=mqtt_client,
             waste_water_level_sensor=waste_water_level_sensor,
