@@ -2,7 +2,7 @@ import os
 import time
 import threading
 from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule
-from modules import wificonn
+from modules import wificonn, httpModule
 
 class WaterFeeder:
     def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, mqtt_client, wifi_conn):
