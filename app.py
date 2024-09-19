@@ -26,8 +26,8 @@ class WaterFeeder:
 
         print(waste_water_level)
         print(f"Turbidity Level: {turbidity_value}")
-        self.httpmodule.uploadData(f"{sensor_location}", str(waste_water_level)) # Waste Water Level
-        self.httpmodule.uploadData(ntu_id,turbidity_value) # Turbidity
+        self.httpmodule.uploadSensorData(f"{sensor_location}", str(waste_water_level)) # Waste Water Level
+        self.httpmodule.uploadSensorData(ntu_id,turbidity_value) # Turbidity
 
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
@@ -37,7 +37,7 @@ class WaterFeeder:
             turbidity_value = self.turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
             ntu_id = self.turbidity_sensor.id
-            self.httpmodule.uploadData(ntu_id,turbidity_value)
+            self.httpmodule.uploadSensorData(ntu_id,turbidity_value)
             time.sleep(1)
 
     def start_monitoring(self):
