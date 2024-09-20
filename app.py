@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     mqtt_client = mqttModule.MQTTModule(server=backendAddr, port=1883)
     mqtt_client.connect()
-    turbidity_sensor = TurbidityModule(id="TurbiditySensor_Bowl", sensor_channel=0) # Install sensor on A0 on ADS115 (Occupied Pin 2 and 3)
+    turbidity_sensor = TurbidityModule(id="turbiditysensor", sensor_channel=0) # Install sensor on A0 on ADS115 (Occupied Pin 2 and 3)
     reservoir_valve = ValveModule(pin=20)
     httpmodule = httpModule.HTTPModule(server=backendAddr)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
