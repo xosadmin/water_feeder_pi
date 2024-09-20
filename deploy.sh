@@ -8,5 +8,6 @@ sudo mkdir -p /opt/app
 sudo cp -r * /opt/app
 sudo cp -r app.service /etc/systemd/system
 sudo systemctl daemon-reload
+sudo systemctl enable app
 sudo systemctl restart app
 echo "Complete."
