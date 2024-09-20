@@ -5,7 +5,7 @@ from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule
 from modules import wificonn, httpModule
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, mqtt_client, wifi_conn):
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, mqtt_client, wifi_conn, httpmodule):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
         self.reservoir_valve = reservoir_valve
