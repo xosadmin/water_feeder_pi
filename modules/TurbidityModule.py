@@ -28,5 +28,7 @@ class TurbidityModule:
             raise ValueError("Invalid sensor channel. Use 0-3 for ADS1115 channels.")
 
     def read_turbidity(self):
-        scaled_value = int((self.chan.voltage * 1023) / 5.0)
+        #scaled_value = int((self.chan.voltage * 1023) / 5.0)
+        voltage = int((self.chan.voltage))
+        scaled_value = -1120.4 * voltage + 5742.3 * voltage - 4352.9
         return f'{scaled_value:.2f}'
