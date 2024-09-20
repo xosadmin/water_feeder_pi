@@ -30,5 +30,5 @@ class TurbidityModule:
     def read_turbidity(self):
         #scaled_value = int((self.chan.voltage * 1023) / 5.0)
         voltage = int((self.chan.voltage))
-        scaled_value = -1120.4 * voltage + 5742.3 * voltage - 4352.9
+        scaled_value = -1120.4 * voltage ** 2 + 5742.3 * voltage - 4352.9
         return f'{scaled_value:.2f}'
