@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 
 class RFIDModule:
-    def __init__(self,server_addr):
+    def __init__(self,server_address):
         self.reader = SimpleMFRC522()
         self.tag_present = False
         self.start_time = None
@@ -25,7 +25,7 @@ class RFIDModule:
         self.current_id = None
         self.water_weight = readWeight()
         self.water_weight.begin()
-        self.http = HTTPModule(server_addr)
+        self.http = HTTPModule(server=server_address)
 
     def read_rfid(self):
         try:
