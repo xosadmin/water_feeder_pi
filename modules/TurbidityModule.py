@@ -35,6 +35,8 @@ class TurbidityModule:
         result = right_min + (value_scaled * right_span)
         if result < 0:
             result = 0.00
+        if result > right_max:
+            result = right_max
         return result
 
     def read_turbidity(self):
