@@ -32,7 +32,10 @@ class TurbidityModule:
         value_scaled = (value - left_min) / left_span
 
         right_span = right_max - right_min
-        return right_min + (value_scaled * right_span)
+        result = right_min + (value_scaled * right_span)
+        if result < 0:
+            result = 0.00
+        return result
 
     def read_turbidity(self):
         voltage = self.chan.voltage
