@@ -6,7 +6,7 @@ Reference: https://github.com/DFRobot/DFRobot_HX711_I2C
 
 import sys
 import time
-from DFRobot_HX711_I2C import *
+from .DFRobot_HX711_I2C import *
 
 class readWeight:
     def __init__(self, iic_mode=0x03, iic_address=0x64, calibration_value=223.7383270263672):
