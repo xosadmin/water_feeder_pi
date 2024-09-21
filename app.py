@@ -1,13 +1,14 @@
 import os
 import time
 import threading
-from modules import WaterLevelModule, TurbidityModule, mqttModule
+from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule
 from modules import wificonn, httpModule
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, mqtt_client, wifi_conn, httpmodule):
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, mqtt_client, wifi_conn, httpmodule):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
+        self.reservoir_valve = reservoir_valve
         self.mqtt_client = mqtt_client
         self.wifi_conn = wifi_conn
         self.httpmodule = httpmodule
@@ -25,8 +26,8 @@ class WaterFeeder:
 
         print(waste_water_level)
         print(f"Turbidity Level: {turbidity_value}")
-        self.httpmodule.uploadData(f"{sensor_location}", str(waste_water_level)) # Waste Water Level
-        self.httpmodule.uploadData(ntu_id,turbidity_value) # Turbidity
+        self.httpmodule.uploadSensorData(f"{sensor_location}", str(waste_water_level)) # Waste Water Level
+        self.httpmodule.uploadSensorData(ntu_id,turbidity_value) # Turbidity
 
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
@@ -36,7 +37,7 @@ class WaterFeeder:
             turbidity_value = self.turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
             ntu_id = self.turbidity_sensor.id
-            self.httpmodule.uploadData(ntu_id,turbidity_value)
+            self.httpmodule.uploadSensorData(ntu_id,turbidity_value)
             time.sleep(1)
 
     def start_monitoring(self):
@@ -76,18 +77,19 @@ if __name__ == "__main__":
 
     mqtt_client = mqttModule.MQTTModule(server=backendAddr, port=1883)
     mqtt_client.connect()
+    turbidity_sensor = TurbidityModule(id="turbiditysensor", sensor_channel=0) # Install sensor on A0 on ADS115 (Occupied Pin 2 and 3)
+    reservoir_valve = ValveModule(pin=20)
     httpmodule = httpModule.HTTPModule(server=backendAddr)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
-
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waterlevelwaste")
-    turbidity_sensor = TurbidityModule(id="turbiditysensor", sensor_channel=0) # Install sensor on A0 on ADS115
-    # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/app.py
+    # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/routes.py
     
     try:
         water_feeder = WaterFeeder(
             mqtt_client=mqtt_client,
             waste_water_level_sensor=waste_water_level_sensor,
             turbidity_sensor=turbidity_sensor,
+            reservoir_valve=reservoir_valve,
             wifi_conn=wifi_conn,
             httpmodule=httpmodule
         )
