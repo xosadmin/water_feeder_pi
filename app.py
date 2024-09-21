@@ -1,14 +1,15 @@
 import os
 import time
 import threading
-from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule
+from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule, RFIDModule
 from modules import wificonn, httpModule
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, mqtt_client, wifi_conn, httpmodule):
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, rfid_module,mqtt_client, wifi_conn, httpmodule):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
         self.reservoir_valve = reservoir_valve
+        self.rfid_module = rfid_module
         self.mqtt_client = mqtt_client
         self.wifi_conn = wifi_conn
         self.httpmodule = httpmodule
@@ -47,6 +48,10 @@ class WaterFeeder:
         self.turbidity_thread.daemon = True
         self.turbidity_thread.start()
 
+        self.rfid_thread = threading.Thread(target=self.rfid_module.read_rfid)
+        self.rfid_thread.daemon = True
+        self.rfid_thread.start()
+
     def on_message(self, client, userdata, message):
         topic = message.topic
         payload = message.payload.decode('utf-8')
@@ -70,6 +75,7 @@ class WaterFeeder:
             self.turbidity_thread.join()
         self.waste_water_level_sensor.cleanup()
         self.turbidity_sensor.cleanup()
+        self.rfid_module.cleanup()
         self.wifi_conn.stop_real_time_update()
 
 if __name__ == "__main__":
@@ -82,6 +88,7 @@ if __name__ == "__main__":
     httpmodule = httpModule.HTTPModule(server=backendAddr)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waterlevelwaste")
+    rfid_module = RFIDModule(server=backendAddr)
     # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/routes.py
     
     try:
@@ -90,6 +97,7 @@ if __name__ == "__main__":
             waste_water_level_sensor=waste_water_level_sensor,
             turbidity_sensor=turbidity_sensor,
             reservoir_valve=reservoir_valve,
+            rfid_module=rfid_module,
             wifi_conn=wifi_conn,
             httpmodule=httpmodule
         )
