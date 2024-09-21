@@ -1,3 +1,9 @@
+"""
+File: RFIDModule.py
+Author: Jean Wang
+Description: Identify pets that approach the water feeder and track their water consumptions
+"""
+
 import time
 from mfrc522 import SimpleMFRC522
 import RPi.GPIO as GPIO
@@ -56,9 +62,8 @@ class RFIDModule:
         self.duration = self.end_time - self.start_time
         logging.info(f'{self.current_id} stops drinking water')
         logging.info(f'Total time: {self.duration}')
-        consumption = round(self.start_weight - self.end_weight)
+        consumption = round(self.start_weight - self.end_weight,2)
         logging.info(f'Total consumption: {consumption} ml')
-        # Instead of sending data here, return it to the main code
         return self.current_id, consumption
 
     def cleanup(self):
