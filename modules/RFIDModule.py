@@ -9,14 +9,15 @@ from mfrc522 import SimpleMFRC522
 import RPi.GPIO as GPIO
 from datetime import datetime
 import logging
-from readWeight import *
+from .readWeight import readWeight
+from .httpModule import HTTPModule
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 
 class RFIDModule:
-    def __init__(self):
+    def __init__(self,server_addr):
         self.reader = SimpleMFRC522()
         self.tag_present = False
         self.start_time = None
@@ -24,6 +25,7 @@ class RFIDModule:
         self.current_id = None
         self.water_weight = readWeight()
         self.water_weight.begin()
+        self.http = HTTPModule(server_addr)
 
     def read_rfid(self):
         try:
@@ -64,7 +66,7 @@ class RFIDModule:
         logging.info(f'Total time: {self.duration}')
         consumption = round(self.start_weight - self.end_weight,2)
         logging.info(f'Total consumption: {consumption} ml')
-        return self.current_id, consumption
+        self.http.uploadDrinkData(self.current_id,consumption)
 
     def cleanup(self):
         GPIO.cleanup()
