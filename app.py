@@ -1,11 +1,11 @@
 import os
 import time
 import threading
-from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule, RFIDModule
+from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule, RFIDModule, readWeight
 from modules import wificonn, httpModule
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, rfid_module,mqtt_client, wifi_conn, httpmodule):
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, rfid_module,mqtt_client, wifi_conn, httpmodule, readWeight):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
         self.reservoir_valve = reservoir_valve
@@ -13,6 +13,7 @@ class WaterFeeder:
         self.mqtt_client = mqtt_client
         self.wifi_conn = wifi_conn
         self.httpmodule = httpmodule
+        self.readWeight = readWeight
         self.monitoring = True
         self.get_sensor_data()
 
@@ -22,6 +23,7 @@ class WaterFeeder:
     def get_sensor_data(self):
         waste_water_level = self.waste_water_level_sensor.get_water_level()
         turbidity_value = self.turbidity_sensor.read_turbidity()
+        weight_value = self.readWeight.read_weight()
         sensor_location = self.waste_water_level_sensor.sensor_location
         ntu_id = self.turbidity_sensor.id
 
@@ -29,6 +31,7 @@ class WaterFeeder:
         print(f"Turbidity Level: {turbidity_value}")
         self.httpmodule.uploadSensorData(f"{sensor_location}", str(waste_water_level)) # Waste Water Level
         self.httpmodule.uploadSensorData(ntu_id,turbidity_value) # Turbidity
+        self.httpmodule.uploadSensorData("weightBowl",weight_value) # Bowl Weight
 
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
@@ -38,6 +41,8 @@ class WaterFeeder:
             turbidity_value = self.turbidity_sensor.read_turbidity()
             print(f"Monitoring - Turbidity Level: {turbidity_value}")
             ntu_id = self.turbidity_sensor.id
+            weightValue = self.readWeight.read_weight()
+            self.httpmodule.uploadSensorData("weightBowl",weightValue)
             self.httpmodule.uploadSensorData(ntu_id,turbidity_value)
             time.sleep(1)
 
@@ -89,6 +94,7 @@ if __name__ == "__main__":
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waterlevelwaste")
     rfid_module = RFIDModule(server=backendAddr)
+    weight_bowl = readWeight(iic_mode=0x03, iic_address=0x64, calibration_value=223.7383270263672)
     # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/routes.py
     
     try:
@@ -99,7 +105,8 @@ if __name__ == "__main__":
             reservoir_valve=reservoir_valve,
             rfid_module=rfid_module,
             wifi_conn=wifi_conn,
-            httpmodule=httpmodule
+            httpmodule=httpmodule,
+            readWeight=weight_bowl
         )
         water_feeder.start_monitoring()
 
