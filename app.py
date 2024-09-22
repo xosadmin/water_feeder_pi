@@ -93,8 +93,9 @@ if __name__ == "__main__":
     httpmodule = httpModule.HTTPModule(server=backendAddr)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     waste_water_level_sensor = WaterLevelModule(in_pin=17, mode_pin=27, sensor_location="waterlevelwaste")
-    rfid_module = RFIDModule(server=backendAddr)
     weight_bowl = readWeight(iic_mode=0x03, iic_address=0x64, calibration_value=223.7383270263672)
+    weight_bowl.begin()
+    rfid_module = RFIDModule(server=backendAddr,water_weight=weight_bowl)
     # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/routes.py
     
     try:
