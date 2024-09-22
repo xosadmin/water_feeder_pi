@@ -26,8 +26,21 @@ class TurbidityModule:
             self.chan = AnalogIn(self.ads, ADS.P3) #A3
         else:
             raise ValueError("Invalid sensor channel. Use 0-3 for ADS1115 channels.")
+        
+    def map_value(self, value, left_min, left_max, right_min, right_max):
+        left_span = left_max - left_min
+        value_scaled = (value - left_min) / left_span
+
+        right_span = right_max - right_min
+        result = right_min + (value_scaled * right_span)
+        if result < 0:
+            result = 0.00
+        if result > right_max:
+            result = right_max
+        return result
 
     def read_turbidity(self):
         voltage = self.chan.voltage
         scaled_value = -1120.4 * voltage ** 2 + 5742.3 * voltage - 4352.9
-        return f'{scaled_value:.2f}'
+        mapped_value = self.map_value(scaled_value, 0, 3000, 0, 6)
+        return f'{mapped_value:.2f}'
