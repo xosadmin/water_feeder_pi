@@ -17,15 +17,15 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 
 class RFIDModule:
-    def __init__(self,server_address):
+    def __init__(self,server,water_weight):
         self.reader = SimpleMFRC522()
         self.tag_present = False
         self.start_time = None
         self.debounce_time = 0.5
         self.current_id = None
-        self.water_weight = readWeight()
+        self.water_weight = water_weight
         self.water_weight.begin()
-        self.http = HTTPModule(server=server_address)
+        self.http = HTTPModule(server)
 
     def read_rfid(self):
         try:
@@ -64,7 +64,7 @@ class RFIDModule:
         self.duration = self.end_time - self.start_time
         logging.info(f'{self.current_id} stops drinking water')
         logging.info(f'Total time: {self.duration}')
-        consumption = round(self.start_weight - self.end_weight,2)
+        consumption = round(self.start_weight - self.end_weight,2) if self.start_weight - self.end_weight > 0 else 0
         logging.info(f'Total consumption: {consumption} ml')
         self.http.uploadDrinkData(self.current_id,consumption)
 
