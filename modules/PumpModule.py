@@ -1,35 +1,34 @@
 """
 File: PumpModule
-Author: Mike Bernal
-Description: Turn on/off water pump based on the following conditions:
-1. TODO If bowl valve is open, turn on.
-2. TODO If bowl valve is closed, turn off.
-3. TODO If water waste tank is full, turn off
-4. DONE Manually on/off pump
-5. DONE Get pump status
-6. DONE Continously monitor pump status at certain interval
+Author:
+Description: Toggle water pump
 """
 import RPi.GPIO as GPIO
 from time import sleep
+
 class PumpModule:
   def __init__(self, pin):
     self.pin = pin
     self.pins_set = False
     # Set GPIO interface
     GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
     GPIO.setup(self.pin, GPIO.OUT, initial=GPIO.LOW)
     self.pins_set = True
 
     # Pump initially turned off
-    GPIO.output(self.pin, GPIO.LOW)
+    self.stop()
 
   def start(self):
     GPIO.output(self.pin, GPIO.HIGH)
+    print("Pump started")
     
 
   def stop(self):
     GPIO.output(self.pin, GPIO.LOW)
+    print("Pump stopped")
+
 
   def get_status(self):
     return GPIO.input(self.pin)
@@ -46,6 +45,5 @@ class PumpModule:
       self.cleanup()
 
   def cleanup(self):
-    if self.pins_set:
-      GPIO.cleanup(self.pin)
-      self.pins_set = False
+    GPIO.cleanup() 
+    print("GPIO cleaned up")
