@@ -12,7 +12,7 @@ class ValveModule:
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     GPIO.setup(self.pin, GPIO.OUT)
-    self.close()  # Initialize with valve closed
+    self.close()
 
   def open(self):
     if self.state == 'closed':

@@ -1,0 +1,5 @@
+requests
+paho-mqtt
+adafruit-circuitpython-ads1x15
+adafruit-blinka
+mfrc522
