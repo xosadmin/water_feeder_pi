@@ -121,7 +121,6 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("Exiting program...")
-        water_feeder.pump.stop()
 
     finally:
         water_feeder.cleanup()
