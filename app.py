@@ -1,11 +1,11 @@
 import os
-import time
+from time import sleep, time
 import threading
-from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule, RFIDModule, readWeight
+from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule, RFIDModule, readWeight, PumpModule
 from modules import wificonn, httpModule
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, rfid_module,mqtt_client, wifi_conn, httpmodule, readWeight):
+    def __init__(self, waste_water_level_sensor, turbidity_sensor, reservoir_valve, rfid_module,mqtt_client, wifi_conn, httpmodule, readWeight, pumpArg):
         self.waste_water_level_sensor = waste_water_level_sensor
         self.turbidity_sensor = turbidity_sensor
         self.reservoir_valve = reservoir_valve
@@ -15,6 +15,7 @@ class WaterFeeder:
         self.httpmodule = httpmodule
         self.readWeight = readWeight
         self.monitoring = True
+        self.pump = pumpArg
         self.get_sensor_data()
 
         self.mqtt_client.client.subscribe("remotecommand")
@@ -81,6 +82,8 @@ class WaterFeeder:
         self.waste_water_level_sensor.cleanup()
         self.turbidity_sensor.cleanup()
         self.rfid_module.cleanup()
+        # self.waste_water_level_sensor.cleanup()
+        self.pump.cleanup()
         self.wifi_conn.stop_real_time_update()
 
 if __name__ == "__main__":
@@ -96,10 +99,12 @@ if __name__ == "__main__":
     weight_bowl = readWeight(iic_mode=0x03, iic_address=0x64, calibration_value=223.7383270263672)
     weight_bowl.begin()
     rfid_module = RFIDModule(server=backendAddr,water_weight=weight_bowl)
+    pump = PumpModule(pin=16)
     # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/routes.py
     
     try:
         water_feeder = WaterFeeder(
+            pumpArg = pump,
             mqtt_client=mqtt_client,
             waste_water_level_sensor=waste_water_level_sensor,
             turbidity_sensor=turbidity_sensor,

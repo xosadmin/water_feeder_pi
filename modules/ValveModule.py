@@ -10,6 +10,7 @@ class ValveModule:
     self.pin = pin
     self.state = 'closed'
     GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
     GPIO.setup(self.pin, GPIO.OUT)
     self.close()
 
@@ -17,13 +18,17 @@ class ValveModule:
     if self.state == 'closed':
       GPIO.output(self.pin, GPIO.HIGH)
       self.state = 'open'
-      print(f"Valve opened.")
-    
+      print("Valve opened.")
+  
   def close(self):
     if self.state == 'open':
       GPIO.output(self.pin, GPIO.LOW)
       self.state = 'closed'
-      print(f"Valve closed.")
+      print("Valve closed.")
+  
+  def get_status(self):
+    return self.state
 
   def cleanup(self):
-    GPIO.cleanup(self.pin)
+    GPIO.cleanup()
+    print("Valve GPIO cleaned up.")

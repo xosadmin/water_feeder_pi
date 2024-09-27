@@ -4,7 +4,7 @@
 # References: https://wiki.dfrobot.com/Non_Contact_Capacitive_Liquid_Level_Sensor_SKU_SEN0368
 
 import RPi.GPIO as GPIO
-import time
+from time import sleep
 
 class WaterLevelModule:
   def __init__(self, in_pin, mode_pin, sensor_location):
@@ -49,7 +49,7 @@ class WaterLevelModule:
       while True:
         water_level_status = self.get_water_level()
         print(water_level_status)
-        time.sleep(2)
+        sleep(2)
     except KeyboardInterrupt:
       print("Monitoring stopped.")
     finally:
