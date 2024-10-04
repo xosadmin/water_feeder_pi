@@ -24,22 +24,24 @@ class WaterFeeder:
         self.mqtt_client.client.on_message = self.on_message
 
     def get_sensor_data(self):
-        waste_water_level = self.waste_water_level_sensor.get_water_level()
+        waste_water_level = self.waste_water_level_sensor.is_low()
         turbidity_value = self.turbidity_sensor.read_turbidity()
         weight_value = self.readWeight.read_weight()
         waste_tank_sensor_location = self.waste_water_level_sensor.sensor_location
         ntu_id = self.turbidity_sensor.id
-
-        print(f"Turbididty: {turbidity_value}")
-        # self.drain_bowl()
-
+        # Console logs
         print(f"Waste water level: {self.waste_water_level_sensor.get_water_level()}")
         print(f"Turbidity Level: {turbidity_value}")
         print(f"waste water level: {waste_water_level}")
+
+        # Website events
         self.httpmodule.uploadSensorData(f"{waste_tank_sensor_location}", str(waste_water_level)) # Waste Water Level
         self.httpmodule.uploadSensorData(ntu_id,turbidity_value) # Turbidity
         self.httpmodule.uploadSensorData("weightBowl",weight_value) # Bowl Weight
 
+    """
+    TODO: Implement emergency stop to all 12v components
+    """
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
 
