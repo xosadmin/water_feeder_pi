@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+*.pyo
+*.pyc
+*.pyd
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Logs
+*.log
+*.out
+*.err
+
+# Raspberry Pi specific files
+*.img
+*.elf
+*.bin
+*.hex
+*.dtb
+config.txt
+cmdline.txt
+overlay/
+.bash_history
+
+# DS_Store for macOS
+.DS_Store
+
+# System Files
+*.swp
+*.swo
+*.bak
+Thumbs.db

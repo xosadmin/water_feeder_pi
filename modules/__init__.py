@@ -4,3 +4,4 @@ from .TurbidityModule import TurbidityModule
 from .RFIDModule import RFIDModule
 from .PumpModule import PumpModule
 from .NotificationModule import NotificationModule
+from .readWeight import readWeight
