@@ -49,7 +49,7 @@ class WaterLevelModule:
       while True:
         water_level_status = self.get_water_level()
         print(water_level_status)
-        sleep(2)
+        sleep(5)
     except KeyboardInterrupt:
       print("Monitoring stopped.")
     finally:

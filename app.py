@@ -30,8 +30,8 @@ class WaterFeeder:
         waste_tank_sensor_location = self.waste_water_level_sensor.sensor_location
         ntu_id = self.turbidity_sensor.id
 
-
-        self.drain_bowl()
+        print(f"Turbididty: {turbidity_value}")
+        # self.drain_bowl()
 
         print(f"Waste water level: {self.waste_water_level_sensor.get_water_level()}")
         print(f"Turbidity Level: {turbidity_value}")
@@ -66,6 +66,9 @@ class WaterFeeder:
         self.rfid_thread.start()
 
         self.monitor_waste_water_level()
+
+        if self.turbidity_sensor.read_turbidity >= 4.5:
+            self.drain_bowl()
 
 
     def on_message(self, client, userdata, message):
