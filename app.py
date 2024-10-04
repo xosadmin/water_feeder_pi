@@ -69,7 +69,7 @@ class WaterFeeder:
 
         self.monitor_waste_water_level()
 
-        if self.turbidity_sensor.read_turbidity >= 4.5:
+        if self.turbidity_sensor.read_turbidity() >= 4.5:
             self.drain_bowl()
 
     def on_message(self, client, userdata, message):
