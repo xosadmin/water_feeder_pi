@@ -69,9 +69,8 @@ class WaterFeeder:
 
         self.monitor_waste_water_level()
 
-        if self.turbidity_sensor.read_turbidity >= 4.5:
+        if self.turbidity_sensor.read_turbidity() >= 4.5:
             self.drain_bowl()
-
 
     def on_message(self, client, userdata, message):
         topic = message.topic
@@ -81,8 +80,12 @@ class WaterFeeder:
             if payload == "0":
                 print("No command specified.")
             elif payload == "changewater":
+                self.drain_bowl()
+                time.sleep(2)
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "refillwater":
+                self.drain_bowl()
+                time.sleep(2)
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "restartfeeder":
                 self.mqtt_client.send_message("remotecommand", "0")
