@@ -24,8 +24,8 @@ class readWeight:
     def read_weight(self, samples=50):
         try:
             weight = self.hx711.read_weight(samples)
-            if weight < 0:
-                weight = 0.00
+            # if weight < 0:
+            #     weight = 0.00
             return weight
         except KeyboardInterrupt:
             print("\nMeasurement stopped by user.")

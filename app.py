@@ -33,6 +33,7 @@ class WaterFeeder:
         print(f"Waste water level: {self.waste_water_level_sensor.get_water_level()}")
         print(f"Turbidity Level: {turbidity_value}")
         print(f"waste water level: {waste_water_level}")
+        print(f"Current weight: {weight_value}")
 
         # Website events
         self.httpmodule.uploadSensorData(f"{waste_tank_sensor_location}", str(waste_water_level)) # Waste Water Level
@@ -56,7 +57,15 @@ class WaterFeeder:
 
             sleep(1)
 
+    def monitor_bowl_weight(self):
+        while self.monitoring:
+            weight_value = self.readWeight.read_weight()
+            print(f"Current bowl weight: {weight_value} grams")
+            sleep(1)
+
+
     def start_monitoring(self):
+        print(f"WEIGHT X: {self.readWeight.read_weight()}")
         self.wifi_conn.start_real_time_update()
 
         self.turbidity_thread = threading.Thread(target=self.monitor_turbidity_level)
@@ -66,6 +75,10 @@ class WaterFeeder:
         self.rfid_thread = threading.Thread(target=self.rfid_module.read_rfid)
         self.rfid_thread.daemon = True
         self.rfid_thread.start()
+
+        self.weight_thread = threading.Thread(target=self.monitor_bowl_weight)
+        self.weight_thread.daemon = True
+        self.weight_thread.start()
 
         self.monitor_waste_water_level()
 
