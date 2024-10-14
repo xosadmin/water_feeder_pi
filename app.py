@@ -5,7 +5,7 @@ from modules import WaterLevelModule, TurbidityModule, mqttModule, ValveModule, 
 from modules import wificonn, httpModule
 
 class WaterFeeder:
-    def __init__(self, waste_water_level_sensor_arg, turbidity_sensor, reservoir_valve, rfid_module,mqtt_client, wifi_conn, httpmodule, readWeight, pump_arg, bowl_valve_arg):
+    def __init__(self, waste_water_level_sensor_arg, turbidity_sensor, reservoir_valve, rfid_module, mqtt_client, wifi_conn, httpmodule, readWeight, pump_arg, bowl_valve_arg):
         self.waste_water_level_sensor = waste_water_level_sensor_arg
         self.turbidity_sensor = turbidity_sensor
         self.reservoir_valve = reservoir_valve
@@ -18,43 +18,69 @@ class WaterFeeder:
         self.pump = pump_arg
         self.bowl_valve = bowl_valve_arg
 
+        # Stop event for controlling the pump flow
+        self.stop_event = threading.Event()
+
         self.get_sensor_data()
 
         self.mqtt_client.client.subscribe("remotecommand")
         self.mqtt_client.client.on_message = self.on_message
 
+        # Uncomment this to test bowl drain 
+        # self.start_drain_bowl_thread()   
+
     def get_sensor_data(self):
         waste_water_level = self.waste_water_level_sensor.is_low()
         turbidity_value = self.turbidity_sensor.read_turbidity()
-        weight_value = self.readWeight.read_weight()
-        waste_tank_sensor_location = self.waste_water_level_sensor.sensor_location
-        ntu_id = self.turbidity_sensor.id
-        # Console logs
-        print(f"Waste water level: {self.waste_water_level_sensor.get_water_level()}")
-        print(f"Turbidity Level: {turbidity_value}")
-        print(f"waste water level: {waste_water_level}")
+        weight_value = self.readWeight.average_weight()
 
-        # Website events
-        self.httpmodule.uploadSensorData(f"{waste_tank_sensor_location}", str(waste_water_level)) # Waste Water Level
-        self.httpmodule.uploadSensorData(ntu_id,turbidity_value) # Turbidity
-        self.httpmodule.uploadSensorData("weightBowl",weight_value) # Bowl Weight
+        if weight_value is not None:
+            waste_tank_sensor_location = self.waste_water_level_sensor.sensor_location
+            ntu_id = self.turbidity_sensor.id
 
-    """
-    TODO: Implement emergency stop to all 12v components
-    """
+            # Console logs
+            print(f"Waste water level: {self.waste_water_level_sensor.get_water_level()}")
+            print(f"Turbidity Level: {turbidity_value}")
+            print(f"Waste water level: {waste_water_level}")
+            print(f"Current weight: {weight_value}")
+
+            # Website events
+            self.httpmodule.uploadSensorData(f"{waste_tank_sensor_location}", str(waste_water_level))
+            self.httpmodule.uploadSensorData(ntu_id, turbidity_value)
+            self.httpmodule.uploadSensorData("weightBowl", weight_value)
+        else:
+            print("Weight sensor returned invalid data.")
+
     def monitor_waste_water_level(self):
         self.waste_water_level_sensor.monitor_water_level()
 
     def monitor_turbidity_level(self):
         while self.monitoring:
-            turbidity_value = self.turbidity_sensor.read_turbidity()
-            print(f"Monitoring - Turbidity Level: {turbidity_value}")
-            ntu_id = self.turbidity_sensor.id
-            weightValue = self.readWeight.read_weight()
-            self.httpmodule.uploadSensorData("weightBowl",weightValue)
-            self.httpmodule.uploadSensorData(ntu_id,turbidity_value)
+            try:
+                turbidity_value = self.turbidity_sensor.read_turbidity()
+                print(f"Monitoring - Turbidity Level: {turbidity_value}")
+                ntu_id = self.turbidity_sensor.id
+                weight_value = self.readWeight.average_weight()
 
-            sleep(1)
+                if weight_value is not None:
+                    self.httpmodule.uploadSensorData("weightBowl", weight_value)
+                    self.httpmodule.uploadSensorData(ntu_id, turbidity_value)
+
+                sleep(1)
+            except Exception as e:
+                print(f"Error in monitor_turbidity_level: {e}")
+
+    def monitor_bowl_weight(self):
+        while self.monitoring:
+            try:
+                weight_value = self.readWeight.average_weight()
+                if weight_value is not None:
+                    print(f"Current bowl weight: {weight_value} grams")
+                else:
+                    print("Weight sensor returned invalid data.")
+                sleep(1)
+            except Exception as e:
+                print(f"Error in monitor_bowl_weight: {e}")
 
     def start_monitoring(self):
         self.wifi_conn.start_real_time_update()
@@ -67,10 +93,19 @@ class WaterFeeder:
         self.rfid_thread.daemon = True
         self.rfid_thread.start()
 
+        self.weight_thread = threading.Thread(target=self.monitor_bowl_weight)
+        self.weight_thread.daemon = True
+        self.weight_thread.start()
+
         self.monitor_waste_water_level()
 
-        if self.turbidity_sensor.read_turbidity() >= 4.5:
+        if float(self.turbidity_sensor.read_turbidity()) >= 4.5:
             self.drain_bowl()
+
+    def start_drain_bowl_thread(self):
+        self.drain_bowl_thread = threading.Thread(target=self.drain_bowl)
+        self.drain_bowl_thread.daemon = True
+        self.drain_bowl_thread.start()
 
     def on_message(self, client, userdata, message):
         topic = message.topic
@@ -81,11 +116,11 @@ class WaterFeeder:
                 print("No command specified.")
             elif payload == "changewater":
                 self.drain_bowl()
-                time.sleep(2)
+                sleep(2)
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "refillwater":
                 self.drain_bowl()
-                time.sleep(2)
+                sleep(2)
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "restartfeeder":
                 self.mqtt_client.send_message("remotecommand", "0")
@@ -93,17 +128,21 @@ class WaterFeeder:
             else:
                 print(f"Unknown command received: {payload}")
 
-    # Bowl capacity is 2 Litres and drained within 35 seconds.
     def drain_bowl(self):
         print("Draining water...")
         start_time = time()
 
-        # Start the pump and open the valve
         self.pump.start()
         self.bowl_valve.open()
 
-        while time() - start_time < 35:
-            # Use inverse for waste tank
+        while time() - start_time < 40:
+            if self.stop_event.is_set():
+                print("Stopping pump and closing valve due to interruption...")
+                self.pump.stop()
+                self.bowl_valve.close()
+                return
+
+            # Check if the waste tank is full
             if not self.waste_water_level_sensor.is_low():
                 print("Waste tank is full! Please empty the tank.")
                 print("Stopping pump and closing valve...")
@@ -117,11 +156,19 @@ class WaterFeeder:
         self.pump.stop()
         self.bowl_valve.close()
 
-
     def cleanup(self):
         self.monitoring = False
+        self.stop_event.set()
+
         if hasattr(self, 'turbidity_thread') and self.turbidity_thread.is_alive():
             self.turbidity_thread.join()
+        if hasattr(self, 'weight_thread') and self.weight_thread.is_alive():
+            self.weight_thread.join()
+        if hasattr(self, 'rfid_thread') and self.rfid_thread.is_alive():
+            self.rfid_thread.join()
+        if hasattr(self, 'drain_bowl_thread') and self.drain_bowl_thread.is_alive():
+            self.drain_bowl_thread.join()
+
         self.waste_water_level_sensor.cleanup()
         self.rfid_module.cleanup()
         self.pump.cleanup()
@@ -132,21 +179,20 @@ if __name__ == "__main__":
 
     mqtt_client = mqttModule.MQTTModule(server=backendAddr, port=1883)
     mqtt_client.connect()
-    turbidity_sensor = TurbidityModule(id="turbiditysensor", sensor_channel=0) # Install sensor on A0 on ADS115 (Occupied Pin 2 and 3)
+    turbidity_sensor = TurbidityModule(id="turbiditysensor", sensor_channel=0)  # Install sensor on A0 on ADS115 (Occupied Pin 2 and 3)
     reservoir_valve = ValveModule(pin=20)
     httpmodule = httpModule.HTTPModule(server=backendAddr)
     wifi_conn = wificonn.WiFiConn(update_interval=5, api_url=f'http://{backendAddr}:5000/update_wificonn')
     waste_water_level_sensor = WaterLevelModule(in_pin=22, mode_pin=27, sensor_location="waterlevelwaste")
     weight_bowl = readWeight(iic_mode=0x03, iic_address=0x64, calibration_value=223.7383270263672)
     weight_bowl.begin()
-    rfid_module = RFIDModule(server=backendAddr,water_weight=weight_bowl)
+    rfid_module = RFIDModule(server=backendAddr, water_weight=weight_bowl)
     pump = PumpModule(pin=16)
     bowl_valve = ValveModule(pin=21)
-    # Note: The ID or sensor_location must align with Remote API defined. For more info, please visit: https://github.com/xosadmin/cits5506/blob/main/routes.py
     
     try:
         water_feeder = WaterFeeder(
-            pump_arg = pump,
+            pump_arg=pump,
             mqtt_client=mqtt_client,
             waste_water_level_sensor_arg=waste_water_level_sensor,
             turbidity_sensor=turbidity_sensor,
