@@ -26,6 +26,7 @@ class WaterFeeder:
         self.mqtt_client.client.subscribe("remotecommand")
         self.mqtt_client.client.on_message = self.on_message
 
+        # Uncomment this to test bowl drain 
         # self.start_drain_bowl_thread()   
 
     def get_sensor_data(self):
@@ -44,9 +45,9 @@ class WaterFeeder:
             print(f"Current weight: {weight_value}")
 
             # Website events
-            self.httpmodule.uploadSensorData(f"{waste_tank_sensor_location}", str(waste_water_level))  # Waste Water Level
-            self.httpmodule.uploadSensorData(ntu_id, turbidity_value)  # Turbidity
-            self.httpmodule.uploadSensorData("weightBowl", weight_value)  # Bowl Weight
+            self.httpmodule.uploadSensorData(f"{waste_tank_sensor_location}", str(waste_water_level))
+            self.httpmodule.uploadSensorData(ntu_id, turbidity_value)
+            self.httpmodule.uploadSensorData("weightBowl", weight_value)
         else:
             print("Weight sensor returned invalid data.")
 
@@ -82,7 +83,6 @@ class WaterFeeder:
                 print(f"Error in monitor_bowl_weight: {e}")
 
     def start_monitoring(self):
-        print(f"WEIGHT X: {self.readWeight.average_weight()}")
         self.wifi_conn.start_real_time_update()
 
         self.turbidity_thread = threading.Thread(target=self.monitor_turbidity_level)
@@ -132,12 +132,10 @@ class WaterFeeder:
         print("Draining water...")
         start_time = time()
 
-        # Start the pump and open the valve
         self.pump.start()
         self.bowl_valve.open()
 
         while time() - start_time < 40:
-            # Check if the stop event is set, then stop draining
             if self.stop_event.is_set():
                 print("Stopping pump and closing valve due to interruption...")
                 self.pump.stop()
@@ -160,9 +158,8 @@ class WaterFeeder:
 
     def cleanup(self):
         self.monitoring = False
-        self.stop_event.set()  # Signal to stop the pump if it's running
+        self.stop_event.set()
 
-        # Ensure all threads are stopped
         if hasattr(self, 'turbidity_thread') and self.turbidity_thread.is_alive():
             self.turbidity_thread.join()
         if hasattr(self, 'weight_thread') and self.weight_thread.is_alive():
@@ -172,7 +169,6 @@ class WaterFeeder:
         if hasattr(self, 'drain_bowl_thread') and self.drain_bowl_thread.is_alive():
             self.drain_bowl_thread.join()
 
-        # Clean up other components
         self.waste_water_level_sensor.cleanup()
         self.rfid_module.cleanup()
         self.pump.cleanup()
