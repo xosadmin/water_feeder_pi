@@ -38,7 +38,7 @@ class WaterLevelModule:
         return "Reservoir water level low!"
       else:
         return "Reservoir water level OK."
-    elif self.sensor_location == "waste":
+    elif self.sensor_location == "waterlevelwaste":
       if self.is_low():
         return "Waste water tank can accept more water."
       else:
