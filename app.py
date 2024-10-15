@@ -225,7 +225,7 @@ if __name__ == "__main__":
     rfid_module = RFIDModule(server=backendAddr, water_weight=weight_bowl)
     pump = PumpModule(pin=16)
     bowl_valve = ValveModule(pin=21)
-    reservoir_water_level_sensor = WaterLevelModule(in_pin=6, mode_pin=5, sensor_location="reservoir")
+    reservoir_water_level_sensor = WaterLevelModule(in_pin=6, mode_pin=5, sensor_location="waterlevelreservoir")
     
     try:
         water_feeder = WaterFeeder(

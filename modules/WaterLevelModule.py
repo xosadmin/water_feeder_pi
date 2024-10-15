@@ -33,7 +33,7 @@ class WaterLevelModule:
     return GPIO.input(self.in_pin) == 0
 
   def get_water_level(self):
-    if self.sensor_location == 'reservoir':
+    if self.sensor_location == 'waterlevelreservoir':
       if self.is_low():
         return "Reservoir water level low!"
       else:
