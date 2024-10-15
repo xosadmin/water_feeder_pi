@@ -104,7 +104,7 @@ class WaterFeeder:
     def start_monitoring(self):
         print("Starting monitoring threads...")
 
-        # self.wifi_conn.start_real_time_update()
+        self.wifi_conn.start_real_time_update()
 
         print("Starting turbidity monitoring...")
         self.turbidity_thread = threading.Thread(target=self.monitor_turbidity_level)
@@ -207,7 +207,7 @@ class WaterFeeder:
         self.waste_water_level_sensor.cleanup()
         self.rfid_module.cleanup()
         self.pump.cleanup()
-        # self.wifi_conn.stop_real_time_update()
+        self.wifi_conn.stop_real_time_update()
 
 if __name__ == "__main__":
     backendAddr = "203.29.240.135"
