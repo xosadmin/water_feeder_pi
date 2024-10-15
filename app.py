@@ -190,11 +190,15 @@ class WaterFeeder:
             elif payload == "changewater":
                 self.start_drain_bowl_thread()
                 sleep(2)
-                self.mqtt_client.send_message("remotecommand", "0")
+                self.mqtt_client.send_message("remotecommand", "0") # Drain bowl
             elif payload == "refillwater":
                 print("Received command to refill water in the bowl.")
                 self.start_refill_bowl_thread()
                 sleep(2)
+                self.mqtt_client.send_message("remotecommand", "0")
+            elif payload == "closevalve":
+                print("Received command to close the valve.")
+                self.reservoir_valve.close()
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "restartfeeder":
                 self.mqtt_client.send_message("remotecommand", "0")
