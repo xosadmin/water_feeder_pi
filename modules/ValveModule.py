@@ -15,20 +15,18 @@ class ValveModule:
     self.close()
 
   def open(self):
-    if self.state == 'closed':
-      GPIO.output(self.pin, GPIO.HIGH)
-      self.state = 'open'
-      print("Valve opened.")
-  
+    GPIO.output(self.pin, GPIO.HIGH)
+    self.state = 'open'
+    print("Valve opened.")
+
   def close(self):
-    if self.state == 'open':
-      GPIO.output(self.pin, GPIO.LOW)
-      self.state = 'closed'
-      print("Valve closed.")
-  
+    GPIO.output(self.pin, GPIO.LOW)
+    self.state = 'closed'
+    print("Valve closed.")
+
   def get_status(self):
     return self.state
 
   def cleanup(self):
-    GPIO.cleanup()
+    GPIO.cleanup(self.pin)
     print("Valve GPIO cleaned up.")
