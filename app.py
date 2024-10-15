@@ -22,27 +22,11 @@ class WaterFeeder:
         # Stop event for controlling the pump flow
         self.stop_event = threading.Event()
 
+        self.valve_lock = threading.Lock()
+
         # Subscribe to remote command via MQTT
         self.mqtt_client.client.subscribe("remotecommand")
         self.mqtt_client.client.on_message = self.on_message
-
-        # Uncomment this to test bowl drain 
-        # self.start_drain_bowl_thread() 
-
-    def get_sensor_data(self):
-        waste_water_level = self.waste_water_level_sensor.is_low()
-        reservoir_water_level = self.reservoir_water_level_sensor.is_low()
-        turbidity_value = self.turbidity_sensor.read_turbidity()
-        weight_value = self.readWeight.average_weight()
-
-        if weight_value is not None:
-            # Console logs
-            print(f"Reservoir water level: {self.reservoir_water_level_sensor.get_water_level()}")
-            print(f"Turbidity Level: {turbidity_value}")
-            print(f"Waste water level: {waste_water_level}")
-            print(f"Water bowl weight: {weight_value}")
-        else:
-            print("Weight sensor returned invalid data.")
 
     def monitor_waste_water_level(self):
         while self.monitoring and not self.stop_event.is_set():
@@ -76,7 +60,7 @@ class WaterFeeder:
                 turbidity_value = self.turbidity_sensor.read_turbidity()
                 print(f"Monitoring - Turbidity Level: {turbidity_value}")
                 ntu_id = self.turbidity_sensor.id
-                weight_value = self.readWeight.average_weight()
+                weight_value = self.readWeight.read_weight()
 
                 if weight_value is not None:
                     print(f"Uploading water bowl weight: {weight_value}")
@@ -92,7 +76,7 @@ class WaterFeeder:
     def monitor_bowl_weight(self):
         while self.monitoring and not self.stop_event.is_set():
             try:
-                weight_value = self.readWeight.average_weight()
+                weight_value = self.readWeight.read_weight()
                 if weight_value is not None:
                     print(f"Current bowl weight: {weight_value} grams")
                 else:
@@ -140,6 +124,39 @@ class WaterFeeder:
         self.drain_bowl_thread.daemon = True
         self.drain_bowl_thread.start()
 
+    def start_refill_bowl_thread(self):
+        self.refill_bowl_thread = threading.Thread(target=self.refill_bowl)
+        self.refill_bowl_thread.daemon = True
+        self.refill_bowl_thread.start()
+
+    def refill_bowl(self):
+        with self.valve_lock:
+            # Check if the reservoir has enough water before starting refill
+            if self.reservoir_water_level_sensor.is_low():
+                print("Reservoir water level is too low to refill. Aborting refill.")
+                return
+
+            print("Refilling bowl...")
+            self.reservoir_valve.open()  # Open reservoir valve
+
+            start_time = time()
+            # Refill for 40 seconds or until threshold is reached
+            # Make sure the bowl is fully empty first
+            while time() - start_time < 40:
+                current_weight = self.readWeight.read_weight()
+                print(f"Current bowl weight: {current_weight} grams")
+
+                if current_weight >= 600:  # Threshold for bowl weight
+                    print(f"Bowl refilled to {current_weight} grams.")
+                    break
+                sleep(1)
+
+            print("Stopping refill and closing reservoir valve.")
+            self.reservoir_valve.close()
+            sleep(2) 
+            print(f"Reservoir valve status: {self.reservoir_valve.get_status()}")
+
+
     def on_message(self, client, userdata, message):
         topic = message.topic
         payload = message.payload.decode('utf-8')
@@ -152,6 +169,8 @@ class WaterFeeder:
                 sleep(2)
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "refillwater":
+                print("Received command to refill water in the bowl.")
+                self.start_refill_bowl_thread()
                 sleep(2)
                 self.mqtt_client.send_message("remotecommand", "0")
             elif payload == "restartfeeder":
@@ -186,6 +205,7 @@ class WaterFeeder:
         print("Stopping pump and closing valve...")
         self.pump.stop()
         self.bowl_valve.close()
+
 
     def cleanup(self):
         self.monitoring = False
