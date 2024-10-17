@@ -1,8 +1,6 @@
 ### water_feeder_pi
   
 This is a client program that run on Raspberry Pi in smart water feeder.  
-
-### URL: 203.29.240.135
    
 #### How to deploy this program?
    
