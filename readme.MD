@@ -1,23 +1,36 @@
-### water_feeder_pi
-  
-This is a client program that run on Raspberry Pi in smart water feeder.  
-   
-#### How to deploy this program?
-   
-Two ways: Use one-key installer or deploy it manually.
-   
-I: Use One-key installer (Recommended)
-1. Clone this project to Raspberry Pi
-2. Start the installer via ``bash deploy.sh``
-3. Wait until finished
-4. Enjoy~
-  
-II: Manually deploy
-1. Clone this project to Raspberry Pi
-2. Change the project location in app.services
-3. Move app.services to /etc/systemd/system
-4. Install dependencies via ``pip install -r requirements.txt`` (some of system requires --break-system-packages)
-5. Execute command ``sudo systemctl daemon-reload``
-6. Execute command ``sudo systemctl start app``
-  
-If you have any issue, please raise your discussion.
+# Smart Water Feeder – Hardware Interface
+
+This is the client program that runs on the Raspberry Pi in the Smart Water Feeder system.
+
+### Deployment Instructions
+
+You can deploy this program in two ways: using the one-click installer (recommended) or by manually deploying it.
+
+#### I. One-Click Installer (Recommended)
+
+1. Clone this project to your Raspberry Pi.
+2. Run the installer by executing the command:  
+   `bash deploy.sh`
+3. Wait for the installation process to complete.
+4. Once finished, the program is ready to use.
+
+#### II. Manual Deployment
+
+1. Clone this project to your Raspberry Pi.
+2. Update the project path in the `app.service` file.
+3. Move the `app.service` file to `/etc/systemd/system/`.
+4. Install the required dependencies by running:  
+   `pip install -r requirements.txt`  
+   _(some systems may require `--break-system-packages`)_.
+5. Reload the systemd daemon with the command:  
+   `sudo systemctl daemon-reload`
+6. Start the application with:  
+   `sudo systemctl start app`
+
+### Circuit Diagram
+
+The system's circuit diagram is shown below:
+
+![Circuit Diagram](circuit_diagram.png)
+
+If you encounter any issues, feel free to open a discussion or raise a support query.
